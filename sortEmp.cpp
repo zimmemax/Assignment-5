@@ -24,7 +24,7 @@ void Sort_Buffer(vector <Records> buffer){
 
 
     
-    string temp_File = "temp" + to_string(fileDmarker);
+    string temp_File = "emp" + to_string(fileDmarker);
     
     fstream tempma(temp_File.c_str(), ios::out | ios::app);
 
@@ -172,13 +172,13 @@ void Merge_Runs(){
 
         ofstream outfile("fileout");
         //tally up totalrecords in each file
-       totalRecordEmpA = countLines("temp0");
-       totalRecordEmpB = countLines("temp"+to_string(i));
+       totalRecordEmpA = countLines("emp0");
+       totalRecordEmpB = countLines("emp"+to_string(i));
 
         cout << "Total Records in EmpA: " << totalRecordEmpA << " Total Records in EmpB: " << totalRecordEmpB << endl;
         
-        ifstream inputb("temp"+to_string(i));
-        ifstream inputa ("temp0");
+        ifstream inputb("emp"+to_string(i));
+        ifstream inputa ("emp0");
        
         Records empA = getRecord(inputa, '$');
         Records empB = getRecord(inputb, '$');
@@ -230,7 +230,7 @@ void Merge_Runs(){
         inputa.close();
         inputb.close();
         outfile.close();
-        copyFile("fileout","temp0");
+        copyFile("fileout","emp0");
         remove("fileout");
     
     //copy fileout to temp0
@@ -277,7 +277,6 @@ void PrintSorted(){
         outfile << output;
     }
     
-    deleteFiles("temp", 1000);
     return;
 }
 
@@ -285,7 +284,7 @@ void PrintSorted(){
 
 int main() {
 
-    deleteFiles("temp", 1000);
+    deleteFiles("emp", 1000);
     //Open file streams to read and write
     //Opening out the Emp.csv relation that we want to Sort
     fstream empin;
@@ -296,7 +295,7 @@ int main() {
    
     //Creating the EmpSorted.csv file where we will store our sorted results
     fstream SortOut;
-    SortOut.open("EmpSorted.csv", ios::out | ios::app);
+   // SortOut.open("EmpSorted.csv", ios::out | ios::app);
 
     //Grab the first 22 blocks of Emp.csv and store them in the bufferp   
     int value = 0;
@@ -332,9 +331,8 @@ int main() {
     }
 
     
-    Merge_Runs();
 
-    PrintSorted();
+    //PrintSorted();
 
 
     //1. Create runs for Emp which are sorted using Sort_Buffer()
