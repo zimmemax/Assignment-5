@@ -3,6 +3,7 @@
 
 #include <bits/stdc++.h>
 #include "record_class.h"
+#include <vector>
 
 using namespace std;
 
@@ -20,14 +21,24 @@ Records buffers[buffer_size]; //use this class object of size 22 as your main me
 /***You can change return type and arguments as you want.***/
 
 //Sorting the buffers in main_memory and storing the sorted records into a temporary file (runs) 
+void deleteFiles(string name, int numFiles){
+    for(int i = 0; i < numFiles; i++){
+        //ifstream n(name + to_string(i));
+        string n = name + to_string(i);
+        remove(n.c_str());
+    }
+}
+
 int countFiles(string filenames){
     int count = 0;
-    for(int i = 0; i < 1000; i++){
+    for(int i = 0; i < 1000; i++)
+    {
         string name = filenames + to_string(i);
-    if (FILE *file = fopen(name.c_str(), "r")) {
-        fclose(file);
-        count++;
-    }    
+        if (FILE *file = fopen(name.c_str(), "r"))
+        {
+            fclose(file);
+            count++;
+        }    
     }
     return count;
 }
@@ -72,113 +83,101 @@ bool endOfFile(Records r){
     }
 }
 
-
-//Use main memory to Merge and Join tuples 
-//which are already sorted in 'runs' of the relations Dept and Emp 
-void Merge_Join_Runs(){
-   
-    cout << deptFileDMarker << endl;
-    cout << empFileDMarker << endl;
-
-
-
-    fstream dept0("dept0");
-    fstream emp0("emp0");
-    fstream emp1("emp1");
-
-
+/*
+bool deptsLeft(string *dept_file_array, int deptFileDMarker){
+    for(int i = 0; i < deptFileDMarker; i++){
+        fstream deptFile = fstream(dept_file_array[i]);
+        Records r = Grab_Dept_Record$(deptFile);
+        if(dept != -1){
+            return false;
+        }
+    }
+    return true;
     
+}
+*/
 
 
-
-    bool endOfEmp0 = false;
-    bool endOfEmp1 = false;
-    bool endOfDept = false;
-    ofstream joinout("Join.csv", ios::out | ios::app);
-
-    // Variables to hold the current records from Emp and Dept relations
-
-    // Read the first records from the sorted runs of Emp and Dept relations
-    Records r;
-
-    
-    Records emp0_record;
-    Records emp1_record;
-    Records dept0_record;
-
-    emp0_record = Grab_Emp_Record$(emp0);
-    emp1_record = Grab_Emp_Record$(emp1);
-    dept0_record = Grab_Dept_Record$(dept0);
-
-
-    while(dept0_record.no_values !=-1){
-        //dept0_record = Grab_Emp_Record$(dept0);
-        if (dept0_record.no_values == -1){
-            break;}
-        //cout << "Did: " << emp1_record.emp_record.eid << endl;
-        
-
-        if (emp0_record.emp_record.eid == dept0_record.dept_record.managerid) {
-            PrintJoin(dept0_record, emp0_record, joinout);
-            emp0_record = Grab_Emp_Record$(emp0);
-            dept0_record = Grab_Dept_Record$(dept0);
+bool inArray(const std::vector<int> v, int seek) {
+    for (int i = 0; i < v.size(); i++) {
+        //cout << "Seek: " << seek << " v[i] "  <<v[i];
+        if (seek == v[i]) {
+            return true;
         }
-
-        if (emp1_record.emp_record.eid == dept0_record.dept_record.managerid) {
-            PrintJoin(dept0_record, emp1_record, joinout);
-            emp1_record = Grab_Emp_Record$(emp1);
-            dept0_record = Grab_Dept_Record$(dept0);
-        }
-
-        if (emp0_record.emp_record.eid < dept0_record.dept_record.managerid) {
-            emp0_record = Grab_Emp_Record$(emp0);
-        }
-        if (emp1_record.emp_record.eid < dept0_record.dept_record.managerid) {
-            emp1_record = Grab_Emp_Record$(emp1);
-        }        
-
-
-        if ((dept0_record.dept_record.managerid < emp0_record.emp_record.eid) && (dept0_record.dept_record.managerid < emp1_record.emp_record.eid)) {
-            dept0_record = Grab_Dept_Record$(dept0);
-        }
-        
-
-
     }
 
-    
-    
-
-        
-    
-    // join in the remainder emp0 and emp1
-
-
-    
-    // Close file streams
-    dept0.close();
-    emp0.close();
-    emp1.close();
-    joinout.close();
-
-    // Delete temporary files after joining Emp.csv and Dept.csv
-    
-    //1.) start by opening dept0 and pulling the first record into memory
-
-    //jump to line number 
-    //compare with the first record of emp0-'emp + empFileDMarker -1'
-    //iterate over current emp file until current dept0.managerid =<empX.eid
-    //write matching records to join
-    //update empFileArray with where we are in the file
-    
-
-
-
-
-    //and store the Joined new tuples using PrintJoin() 
-    return;
+   return false;
 }
 
+
+Records getSmallestRecord(vector<int> vistedDeptManagerID, string*dept_file_arr){
+    Records currDept;
+    Records smallestDept;
+    fstream currFile;
+    int smallestManagerID = 10000000;
+
+    for(int i =0; i < deptFileDMarker; i++){
+        string fileName = "dept" + to_string(i);
+        currFile = fstream(fileName);
+        currDept = Grab_Dept_Record$(currFile);
+        while(currDept.no_values != -1){
+            int currManagerID = currDept.dept_record.managerid;
+            if((currManagerID< smallestManagerID) && !inArray(vistedDeptManagerID, currDept.dept_record.did))
+            {
+                smallestDept = currDept;
+                smallestManagerID = currManagerID;
+            }
+        currDept = Grab_Dept_Record$(currFile);
+
+        }
+        
+    }
+
+    return smallestDept;
+}
+void Merge_Join_Runs(string *emp_file_array, string *dept_file_array){
+   
+    // find the lowest dept file manager id
+   
+
+    vector<int> vistedDeptDID;
+    //visit lowest dept = currDeptmanagerid
+    //check if currDeptmanagerid in vistedDeptManagerID
+    //if not check if it has any join in all emp
+    //add currentDeptManagerid to vistedDeptManagerID
+    
+    ofstream joinout;
+    joinout.open("Join.csv", ios::out | ios::app);
+
+    //count total deptrecords
+   total_dept_records = 0;
+   for(int i = 0; i < deptFileDMarker; i++){
+    
+    total_dept_records+=countLines(dept_file_array[i]);
+   }
+    
+    
+    Records smallestDeptRecord;
+   
+    while(vistedDeptDID.size() != total_dept_records){
+        smallestDeptRecord = getSmallestRecord(vistedDeptDID, dept_file_array);
+        vistedDeptDID.push_back(smallestDeptRecord.dept_record.did);
+        
+        for(int i = 0; i < empFileDMarker; i++){
+            Records r;
+            fstream empFile = fstream(emp_file_array[i]);
+            while(r.no_values != -1){
+                r = Grab_Emp_Record$(empFile);
+                if(r.emp_record.eid == smallestDeptRecord.dept_record.managerid)
+                {
+                    PrintJoin(smallestDeptRecord, r, joinout);
+                }
+            }
+        }
+    }
+
+    return;
+}
 int main() {
     remove("Join.csv");
 
@@ -187,14 +186,19 @@ int main() {
     empFileDMarker = countFiles("emp");
     deptFileDMarker = countFiles("dept");
 
-    fstream emp_file_array[empFileDMarker];
-    fstream dept_file_array[deptFileDMarker];
+    string emp_file_array[empFileDMarker];
+    string dept_file_array[deptFileDMarker];
     
-    for (int i = 0; i < empFileDMarker; i++){
-        emp_file_array[i] = fstream("emp" + to_string(i));
+    stringstream sstm;
+    for (int i=0;i<empFileDMarker ;i++)
+    {
+        string currStr = "emp" + to_string(i);
+        emp_file_array[i] = currStr;
     }
-    for (int i = 0; i < deptFileDMarker; i++){
-        dept_file_array[i] = fstream("dept" + to_string(i));
+    for (int i=0;i<deptFileDMarker ;i++)
+    {
+        string currStr = "dept" + to_string(i);
+        dept_file_array[i] = currStr;
     }
     //make arrays for all runs    
 
@@ -208,8 +212,13 @@ int main() {
     //Creating the Join.csv file where we will store our joined results
     fstream joinout;
     joinout.open("Join.csv", ios::out | ios::app);
-    Merge_Join_Runs();
-
+    //Merge_Join_Runs(emp_file_array, dept_file_array);
+    cout << "Max o clock" << endl;
+    Merge_Join_Runs(emp_file_array, dept_file_array);
+    
+    //Close file streams
+    joinout.close();
+    
     //1. Create runs for Dept and Emp which are sorted using Sort_Buffer()
 
 
@@ -217,7 +226,8 @@ int main() {
 
 
     //Please delete the temporary files (runs) after you've joined both Emp.csv and Dept.csv
-
+    deleteFiles("emp", 1000);
+    deleteFiles("dept", 1000);
 
     return 0;
 }

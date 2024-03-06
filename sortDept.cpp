@@ -312,7 +312,6 @@ int main() {
             value = emp.no_values;
             if (value == -1){
             
-                cout << "Value: \n" << value << "Records read: " << records_read<< endl;
                 break;
             }
             buffer.push_back(emp);
